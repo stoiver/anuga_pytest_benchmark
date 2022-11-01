@@ -44,7 +44,7 @@ import pytest
     disable_gc=True,
     warmup=False
 )
-def test_anuga_evolve(benchmark):
+def test_anuga_long_evolve(benchmark):
 
     benchmark(run_anuga_evolve)
 
