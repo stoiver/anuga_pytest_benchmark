@@ -1,24 +1,26 @@
 #########################################################
 #
-#  Example of running a simple parallel model
+#  Example of running a simple benchmark
 #
-#  Need mpi setup for your machine 
+#  To see the possible arguments run
+#
+#  python run_anuga_rectangular.py --help
+#
+#  To run in parallel you need mpi setup for your machine 
 #
 #  To run in parallel on 4 processes, use the following
 #
-#  mpiexec -np 4 python -u run_parallel_sw_rectangular_cross.py
+#  mpiexec -np 4 python -u run_anuga_rectangular.py
 #
 #
-#  Note the use of "if myid == 0" to restrict some calculations 
-#  to just one processor, in particular the creation of a 
-#  full domain on processor 0 which is then distributed to the
-#  processors. 
+#  Note that in the code the use of "if myid == 0" to restrict
+#  some calculations to just one processor, in particular the 
+#  creation of a full domain on processor 0 which is then 
+#  distributed to the processors. 
 #
 #  Authors: 
 #  Linda Stals, Steve Roberts and Matthew Hardy - June 2005
 #  Steve Roberts - 2018
-#
-#
 #
 #########################################################
 
@@ -56,6 +58,7 @@ width = 2.0
 
 yieldstep = 0.005
 finaltime = 0.015
+multiprocessor_mode = 0
 
 fixed_flux_timestep = 0.0
 
@@ -68,8 +71,13 @@ parser.add_argument('-ys', '--yieldstep', type=float, default=yieldstep,
                     help='yieldstep')
 parser.add_argument('-sn', '--sqrtN', type=int, default=sqrtN,
                     help='Size of grid: 500 -> 1_000_000 triangles')
+
+
 parser.add_argument('-gl', '--ghost_layer', type=int, default=2,
                     help='Size of ghost layer')
+
+parser.add_argument('-mm', '--multi_mode', type=int, default=multiprocessor_mode,
+                    help='Multiprocessor Mode 0, 1, 2')
 
 parser.add_argument('-fdt', '--fixed_dt', type=float, default=fixed_flux_timestep,
                     help='Set a fixed flux timestep')
@@ -91,6 +99,7 @@ verbose = args.verbose
 evolve_verbose = args.evolve_verbose
 fixed_flux_timestep = args.fixed_dt
 test_allreduce = args.test_allreduce
+multiprocessor_mode = args.multi_mode
 
 dist_params = {}
 dist_params['ghost_layer_width'] = args.ghost_layer
@@ -151,6 +160,15 @@ if myid == 0:
     print('CFL ',domain.CFL)
     print('fixed_flux_timestep ',domain.fixed_flux_timestep)
 domain.test_allreduce = test_allreduce
+
+
+try:
+    domain.set_multiprocessor_mode(multiprocessor_mode)
+except:
+    if myid == 0:
+        print('Warning: set_multiprocessor mode not available')
+    else:
+        pass
 
 t2 = time.time()
 
