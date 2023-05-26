@@ -205,15 +205,20 @@ t0 = time.time()
 # Main Evolve Loop
 #===========================================================================
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
+    if myid == 0 and t == 0:
+        t1 = time.time()
+        evolve_setup_time = t1 - t0
+
     if myid == 0:
         domain.write_time()
         sys.stdout.flush()
         
         
-evolve_time = time.time()-t0
+evolve_loop_time = time.time()-t1
 
 if myid == 0 :
-    print ('Evolve: Time',evolve_time)
+    print ('Evolve Setup Time:',evolve_setup_time)
+    print ('Evolve Evolution Time:',evolve_loop_time)
 
 if evolve_verbose:
     for p in range(numprocs):
@@ -240,8 +245,8 @@ if domain.number_of_global_triangles < 10:
 
 if myid == 0:
     print(80*'=')
-    print('np,ntri,ctime,dtime,etime')
-    msg = "%d,%d,%f,%f,%f"% (numprocs, domain.number_of_global_triangles, creation_time, distribute_time, evolve_time)
+    print('np,ntri,ctime,dtime,esetup,etime')
+    msg = "%d,%d,%f,%f,%f,%f"% (numprocs, domain.number_of_global_triangles, creation_time, distribute_time, evolve_setup_time, evolve_loop_time)
     print(msg)
 
 finalize()
